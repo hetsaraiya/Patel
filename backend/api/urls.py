@@ -10,4 +10,5 @@ urlpatterns = [
     path("likePost/", likePost, name="likePost"), # Done
     path("makeMatrimonialProfile/", makeMatrimonialProfile, name="makeMatrimonialProfile"), # Done
     path("getCount/", getCount, name="getCount"), # Done
+    path("login/", login, name="login"), # Done
 ]

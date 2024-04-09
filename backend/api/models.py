@@ -7,8 +7,6 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 
 
 class User(AbstractUser):
-    phone_number = models.IntegerField(default=0)
-    full_name = models.CharField(max_length=30, default="")
     groups = models.ManyToManyField(
         Group,
         verbose_name= ('groups'),
@@ -24,6 +22,8 @@ class User(AbstractUser):
         help_text= ('Specific permissions for this user.'),
         related_name='custom_user_permissions'  # Provide a unique related_name
     )
+    phone_number = models.IntegerField(default=0)
+    full_name = models.CharField(max_length=30, default="")
     def __str__(self):
         return self.first_name
     

@@ -1,4 +1,6 @@
-from django.http import JsonResponse
+import json
+from django.http import JsonResponse, HttpResponse
+from django.contrib.auth import authenticate, login as auth_login
 from django.core import serializers
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
@@ -18,9 +20,9 @@ def signUp(request):
 
         # Split full name into first and last name
         first_name, last_name = full_name.split(maxsplit=1) if ' ' in full_name else (full_name, '')
-
+        username = str(phone_number)
         # Create user and store phone number
-        user = User.objects.create_user(username=phone_number, first_name=first_name, last_name=last_name, password=password)
+        user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name, password=password)
         user.phone_number = phone_number
         user.save()
 
@@ -253,3 +255,42 @@ def getCount(request):
     else:
         # If the request method is not GET, return method not allowed error
         return JsonResponse({"error": "Method not allowed"}, status=405)
+
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        pho = str(phone_number)
+        # Authenticate user
+        user = authenticate(request, username=pho, password=password)
+
+        if user is not None:
+            # User authenticated, log them in
+            login(request, user)
+            response_data = {
+                'message': 'Login successful',
+            }
+            return JsonResponse(response_data, status=200)
+        else:
+            # Authentication failed
+            return JsonResponse({'error': 'Invalid phone number or password'}, status=401)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+
+@csrf_exempt
+def signIn(request):
+    if request.method == "POST":
+        username = request.POST.get("phone_number")
+        password = request.POST.get("password")
+        pho = str(username)
+        user = authenticate(username=pho, password=password)
+        if user is not None:
+            login(request, user)
+            return HttpResponse(json.dumps({"msg": " Logged In"}),content_type="application/json",)
+        else:
+            # messages.error(request, "Bad Credentials!!")
+            return HttpResponse(json.dumps({"msg": " None"}),content_type="application/json",)
+    
+    return HttpResponse(json.dumps({"msg": " your details updated successfully."}),content_type="application/json",)
