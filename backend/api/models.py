@@ -36,6 +36,7 @@ class UserProfile(models.Model):
         (MALE, 'Male'),
         (FEMALE, 'Female')
     ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=50, default="")
     age = models.IntegerField(default=0, validators=[MaxValueValidator(110)])
     gender = models.CharField(max_length=10, default="", choices=GENDER_CHOICES)

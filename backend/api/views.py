@@ -20,21 +20,45 @@ def signUp(request):
 
         # Split full name into first and last name
         first_name, last_name = full_name.split(maxsplit=1) if ' ' in full_name else (full_name, '')
-        username = str(phone_number)
         # Create user and store phone number
-        user = User.objects.create_user(username=username, first_name=first_name, last_name=last_name, password=password)
+        user = User.objects.create_user(username=phone_number, first_name=first_name, last_name=last_name, password=password)
         user.phone_number = phone_number
         user.save()
 
         response_data = {
             'message': 'User created successfully',
             'phone_number': user.phone_number,
-            'user_id': user.id  # Include user ID if needed
+            'user_id': user.id
         }
         return JsonResponse(response_data, status=201)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
+
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        phone_number = request.POST.get('phone_number')
+        password = request.POST.get('password')
+        # Authenticate user
+        authuser = User.objects.get(username=phone_number)
+        user = authenticate(request, username=phone_number, password=password)
+
+        if user and authuser:
+            # User authenticated, log them in
+            auth_login(request, user)
+            response_data = {
+                'message': 'Login successful',
+                'username' : authuser.username,
+                'full_name' : authuser.first_name,
+                "user_id" : authuser.pk
+            }
+            return JsonResponse(response_data, status=200)
+        else:
+            # Authentication failed
+            return JsonResponse({'error': 'Invalid phone number or password'}, status=401)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+ 
 @csrf_exempt
 def createUserProfile(request):
     if request.method == 'POST':
@@ -47,9 +71,10 @@ def createUserProfile(request):
         mobile_number = request.POST.get('mobile_number')
         marital_status = request.POST.get('marital_status')
         profile_picture = request.FILES.get('profile_picture')
-
+        users = User.objects.get(username=mobile_number)
         # Create a new UserProfile object with the retrieved data
         new_profile = UserProfile.objects.create(
+            user = users,
             full_name=full_name,
             age=age,
             gender=gender,
@@ -74,7 +99,7 @@ def createFamilyDetails(request):
         # users = User.objects.get(first_name=user)
         print(user)
         # user_id = users.pk
-        related_to = UserProfile.objects.get(full_name=user)
+        related_to = UserProfile.objects.get(user=user)
         relation = request.POST.get('relation')
         full_name = request.POST.get('full_name')
         mobile_number = request.POST.get('mobile_number')
@@ -105,8 +130,10 @@ def createFamilyDetails(request):
 def createPost(request):
     if request.method == 'POST':
         # Retrieve data from the request body
-        user_id = request.POST.get('full_name')  # Assuming the frontend sends the user ID associated with the post
-        user = UserProfile.objects.get(full_name=user_id)
+        user_id = request.POST.get('user') 
+        print(user_id)
+        users = User.objects.get(pk=user_id)
+        user = UserProfile.objects.get(user=users.pk)
         type_of_post = request.POST.get('type_of_post')
         message = request.POST.get('message')
         image = request.FILES.get('image')
@@ -131,14 +158,13 @@ def addComment(request):
     if request.method == 'POST':
         # Get data from request body
         post_id = request.POST.get('post_id')
-        user_name = request.POST.get('full_name')
+        user_id = request.POST.get('user')
         content = request.POST.get('content')
         
         try:
             # Retrieve the post and user objects
             post = Post.objects.get(id=post_id)
-            user = UserProfile.objects.get(full_name=user_name)
-            print(post.message)
+            user = UserProfile.objects.get(user=user_id)
         except (Post.DoesNotExist, UserProfile.DoesNotExist) as e:
             # If post or user does not exist, return error response
             return JsonResponse({'error': str(e)}, status=404)
@@ -208,7 +234,8 @@ def makeMatrimonialProfile(request):
         occupation = request.POST.get('occupation')
         occupation_detail = request.POST.get('occupation_detail')
         hobby = request.POST.getlist('hobby')
-        user = UserProfile.objects.get(full_name=full_name)
+        uId = User.objects.get(username=mobile_number)
+        user = UserProfile.objects.get(user=uId.pk)
 
         # Create MatrimonialProfile object
         matrimonial_profile = MatrimonialProfile.objects.create(
@@ -255,42 +282,3 @@ def getCount(request):
     else:
         # If the request method is not GET, return method not allowed error
         return JsonResponse({"error": "Method not allowed"}, status=405)
-
-@csrf_exempt
-def login(request):
-    if request.method == 'POST':
-        phone_number = request.POST.get('phone_number')
-        password = request.POST.get('password')
-        pho = str(phone_number)
-        # Authenticate user
-        user = authenticate(request, username=pho, password=password)
-
-        if user is not None:
-            # User authenticated, log them in
-            login(request, user)
-            response_data = {
-                'message': 'Login successful',
-            }
-            return JsonResponse(response_data, status=200)
-        else:
-            # Authentication failed
-            return JsonResponse({'error': 'Invalid phone number or password'}, status=401)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-
-@csrf_exempt
-def signIn(request):
-    if request.method == "POST":
-        username = request.POST.get("phone_number")
-        password = request.POST.get("password")
-        pho = str(username)
-        user = authenticate(username=pho, password=password)
-        if user is not None:
-            login(request, user)
-            return HttpResponse(json.dumps({"msg": " Logged In"}),content_type="application/json",)
-        else:
-            # messages.error(request, "Bad Credentials!!")
-            return HttpResponse(json.dumps({"msg": " None"}),content_type="application/json",)
-    
-    return HttpResponse(json.dumps({"msg": " your details updated successfully."}),content_type="application/json",)
