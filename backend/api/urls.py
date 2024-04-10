@@ -11,4 +11,5 @@ urlpatterns = [
     path("makeMatrimonialProfile/", makeMatrimonialProfile, name="makeMatrimonialProfile"), # Done
     path("getCount/", getCount, name="getCount"), # Done
     path("login/", login, name="login"), # Done
+    path("getUserDetails/", getUserDetails, name="getUserDetails"), # Done
 ]

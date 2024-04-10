@@ -130,10 +130,8 @@ def createFamilyDetails(request):
 def createPost(request):
     if request.method == 'POST':
         # Retrieve data from the request body
-        user_id = request.POST.get('user') 
-        print(user_id)
-        users = User.objects.get(pk=user_id)
-        user = UserProfile.objects.get(user=users.pk)
+        user_id = request.POST.get('user')
+        user = UserProfile.objects.get(user=user_id)
         type_of_post = request.POST.get('type_of_post')
         message = request.POST.get('message')
         image = request.FILES.get('image')
@@ -282,3 +280,29 @@ def getCount(request):
     else:
         # If the request method is not GET, return method not allowed error
         return JsonResponse({"error": "Method not allowed"}, status=405)
+    
+@csrf_exempt  
+def getUserDetails(request):
+    if request.method == "GET":
+        user_id = request.GET.get("id")
+        try:
+            user_details = UserProfile.objects.get(user=user_id)
+        except UserProfile.DoesNotExist:
+            return HttpResponse(json.dumps({"Msg": "User does not exist"}), status=404)
+        if user_details.profile_picture:
+            profile_picture_url = user_details.profile_picture.url
+        else:
+            profile_picture_url = None
+        response_data = {
+            "full_name": user_details.full_name,
+            "age" : user_details.age,
+            "gender" : user_details.gender,
+            "current_address" : user_details.current_address,
+            "native_address" : user_details.native_address,
+            "mobile_number" : user_details.mobile_number,
+            "marital_status" : user_details.marital_status,
+            "profile_picture" : profile_picture_url
+        }
+        return JsonResponse(response_data)
+    else:
+        return HttpResponse(json.dumps({"Msg" : "Bad Request"}))
