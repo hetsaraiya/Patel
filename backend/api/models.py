@@ -105,12 +105,19 @@ class MatrimonialProfile(models.Model):
         (SINGLE, 'Single'),
         (DIVORCEE, 'Divorcee'),
     ]
+    MALE = 'Male'
+    FEMALE = 'Female'
+    GENDER_CHOICES = [
+        (MALE, 'Male'),
+        (FEMALE, 'Female')
+    ]
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=50, default="")
     birth_date = models.DateField(default=None, null=False)
     age = models.IntegerField(default=None, null=False)
     current_address = models.TextField(default=None, null=False)
     native_address = models.TextField(default=None, null=False)
+    gender = models.CharField(max_length=10, default="", choices=GENDER_CHOICES)
     mobile_number = models.IntegerField(validators=[MaxValueValidator(9999999999)], default=0)
     marital_status = models.CharField(default="", max_length=15 , choices=MARITAL_CHOICES)
     profile_picture = models.ImageField(upload_to='images/')

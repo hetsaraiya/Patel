@@ -225,6 +225,7 @@ def makeMatrimonialProfile(request):
         native_address = request.POST.get('native_address')
         mobile_number = request.POST.get('mobile_number')
         marital_status = request.POST.get('marital_status')
+        gender = request.POST.get('gender')
         profile_picture = request.FILES.get('profile_picture')
         height = request.POST.get('height')
         weight = request.POST.get('weight')
@@ -246,6 +247,7 @@ def makeMatrimonialProfile(request):
             mobile_number=mobile_number,
             marital_status=marital_status,
             profile_picture=profile_picture,
+            gender=gender,
             height=height,
             weight=weight,
             education=education,
